@@ -1,0 +1,89 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "msvc",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "build/${presetName}",
+      "environment": { "LDFLAGS": "/DELAYLOAD:libpq.dll" },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;MinSizeRel;Release"
+      }
+    },
+    {
+      "name": "msvc-pg-static",
+      "description": "Build mostly static but use libpq.dll (suitable for dropping into EDB's bin next to psql.exe)",
+      "inherits": "msvc",
+      "environment": { "CFLAGS": "/Os" },
+      "cacheVariables": { "VCPKG_TARGET_TRIPLET": "x64-windows-static-md" }
+    },
+    {
+      "name": "msvc-static",
+      "inherits": "msvc-pg-static",
+      "environment": { "CFLAGS": "/DMSVC_STATIC_POSTGRESQL /Os" },
+      "vendor": { "comment": "You won't gain anything from CFLAGS: /GL and LDFLAGS: /LTCG" },
+      "cacheVariables": { "VCPKG_MANIFEST_FEATURES": "vcpkg-pg" }
+    },
+    {
+      "name": "msvc-clang",
+      "inherits": "msvc",
+      "toolset": "ClangCL"
+    },
+    {
+      "name": "msvc-clang-pg-static",
+      "displayName": "msvc-clang-pg-static (Recommended)",
+      "inherits": "msvc-clang",
+      "environment": { "CFLAGS": "/Os" },
+      "cacheVariables": { "VCPKG_TARGET_TRIPLET": "x64-windows-static-md" }
+    },
+    {
+      "name": "msvc-clang-static",
+      "inherits": "msvc-clang-pg-static",
+      "cacheVariables": { "VCPKG_MANIFEST_FEATURES": "vcpkg-pg" }
+    },
+    {
+      "name": "msys2-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "build/$env{MSYSTEM}-${presetName}",
+      "condition": { "lhs": "$penv{MSYSTEM}", "type": "notEquals", "rhs": "" },
+      "environment": { "PKG_CONFIG_SYSROOT_DIR": "$env{MINGW_PREFIX}/.." }
+    },
+    {
+      "name": "pdcurses-base",
+      "hidden": true,
+      "environment": { "CURSES": "pdcurses" },
+      "cacheVariables": { "WANT_CURSES": "pdcurses" }
+    },
+    {
+      "name": "ncursesw",
+      "description": "Use ncursesw in MSYS2, but mouse support as well as ALT+ keystrokes are broken (not recommended)",
+      "inherits": "msys2-base"
+    },
+    {
+      "name": "ncursesw-static",
+      "inherits": "ncursesw",
+      "cacheVariables": { "CMAKE_BUILD_TYPE":"MinSizeRel", "WANT_SHLIB": "NO" }
+    },
+    {
+      "name": "pdcurses",
+      "inherits": ["msys2-base", "pdcurses-base"]
+    },
+    {
+      "name": "pg-static",
+      "displayName": "pg-static (Highly recommended with clang, but produces a larger executable with gcc)",
+      "description": "Build mostly static but use libpq.dll (suitable for dropping into EDB's bin next to psql.exe)",
+      "inherits": ["msys2-base", "pdcurses-base"],
+      "vendor": { "If using clang": "LDFLAGS=-Wl,--delayload=libpq.dll cmake ..." },
+      "cacheVariables": { "CMAKE_BUILD_TYPE":"MinSizeRel", "WANT_SHLIB": "PG" }
+    },
+    {
+      "name": "static",
+      "displayName": "static (Very large executable with gcc)",
+      "description": "Build fully static",
+      "inherits": "pg-static",
+      "cacheVariables": { "CMAKE_BUILD_TYPE":"MinSizeRel", "WANT_SHLIB": "NO" }
+    }
+  ]
+}

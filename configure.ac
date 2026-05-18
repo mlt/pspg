@@ -30,7 +30,7 @@ esac
 
 AC_CHECK_LIB([m],[roundl])
 
-AC_SEARCH_LIBS([clock_gettime], [rt posix4],
+AC_SEARCH_LIBS([clock_gettime], [rt posix4 winpthread],
    [],
    [AC_MSG_ERROR([Function clock_gettime not available.])]
 )

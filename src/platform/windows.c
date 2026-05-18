@@ -9,11 +9,10 @@
  *-------------------------------------------------------------------------
  */
 
-#ifdef _WIN32
-
 #include "platform.h"
 #include <io.h>
 #include <winsock2.h>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <process.h>
 
@@ -327,4 +326,3 @@ fork(void)
 	return -1;
 }
 
-#endif /* _WIN32 */

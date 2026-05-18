@@ -11,6 +11,12 @@ DEPS=$(wildcard *.d)
 PSPG_OFILES=csv.o print.o commands.o unicode.o themes.o pspg.o config.o sort.o pgclient.o args.o infra.o \
 table.o string.o export.o linebuffer.o bscommands.o readline.o inputs.o theme_loader.o
 
+ifeq ($(OS),Windows_NT)
+PSPG_OFILES+=src/platform/windows.o
+CFLAGS += -I src/platform/compat/windows
+LDLIBS += -lws2_32
+endif
+
 OBJS=$(PSPG_OFILES)
 
 ifdef COMPILE_MENU

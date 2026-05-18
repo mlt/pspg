@@ -5,9 +5,15 @@
   "description": "PostgreSQL pager for Windows",
   "homepage": "https://github.com/okbob/pspg",
   "dependencies": [
+    "readline",
     "pdcurses",
-    "getopt",
-    "libpq"
+    "getopt"
   ],
+  "features": {
+    "vcpkg-pg": {
+      "description": "Only enable this if you lack a local Postgres installation",
+      "dependencies": [ "libpq" ]
+    }
+  },
   "builtin-baseline": "edffab1bcd2cb5b8c17d6ba34d5651ea0bf82979"
 }
