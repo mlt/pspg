@@ -2,7 +2,11 @@
 #ifndef SIGNAL_H_COMPAT
 #define SIGNAL_H_COMPAT
 
-#include <signal.h>
+#if defined(__GNUC__) || defined(__clang__)
+# include_next <signal.h>
+#else
+# include <signal.h>
+#endif
 
 /* Signal handler function pointers (POSIX.1-2008, values from AT&T Unix) */
 #ifndef SIG_IGN
@@ -28,6 +32,10 @@
   #define SIGSEGV 11       /* Invalid memory reference - segmentation violation */
 #endif
 
+#ifndef SIGWINCH
+  #define SIGWINCH 28      /* Window size change - terminal resized */
+#endif
+
 struct sigaction {
   void (*sa_handler)(int);
   int sa_flags;
@@ -41,6 +49,11 @@ static inline int sigemptyset(int *set) {
   *set = 0;
   return 0;
 }
+
+#ifndef __GNUC__ /* MSVC only and not ClangCL */
+typedef void (__CRTDECL *_crt_signal_t)(int);
+    _ACRTIMP _crt_signal_t __cdecl signal(_In_ int _Signal, _In_opt_ _crt_signal_t _Function);
+#endif
 
 /*
  * Windows doesn't have sigaction, emulate with signal().

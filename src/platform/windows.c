@@ -15,6 +15,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <process.h>
+#include <time.h>
+#include <errno.h>	/* ENOSYS */
 
 /*
  * Windows implementation for strndup (not available in standard library)
@@ -326,3 +328,21 @@ fork(void)
 	return -1;
 }
 
+#ifdef _MSC_VER /* implemented in (win)pthread MinGW library */
+int clock_gettime(int clk_id, struct timespec *tp)
+{
+	static LARGE_INTEGER frequency = { 0 };
+	LARGE_INTEGER counter;
+
+	if (frequency.QuadPart == 0) {
+		QueryPerformanceFrequency(&frequency);
+	}
+
+	QueryPerformanceCounter(&counter);
+
+	tp->tv_sec = (time_t)(counter.QuadPart / frequency.QuadPart);
+	tp->tv_nsec = (long)((counter.QuadPart % frequency.QuadPart) * 1000000000 / frequency.QuadPart);
+
+	return 0;
+}
+#endif /* _MSC_VER */

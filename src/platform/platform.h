@@ -17,11 +17,27 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
+  #define F_SETFL 4          /* fcntl command 4: Set file status flags */
+  #define O_NONBLOCK 04000   /* Octal 04000 (0x800): Non-blocking I/O - from Linux fcntl-linux.h */
+  #define fcntl(...) (0)
+
+  #include <io.h>	/* chmod instead of sys/stat.h */
   #include <BaseTsd.h>
   typedef SSIZE_T ssize_t;
   #define PATH_SEPARATOR '\\'
   #define PATH_SEPARATOR_STR "\\"
+
+  /* POSIX clock types from POSIX.1-2008 (clock_gettime parameter) */
+  #ifndef CLOCK_MONOTONIC
+  #define CLOCK_MONOTONIC 1    /* Monotonic clock: cannot go backwards, unaffected by time adjustments */
+  #endif
+
+  #ifndef CLOCK_REALTIME
+  #define CLOCK_REALTIME 0     /* Real-time clock: wall-clock time, affected by NTP/manual changes */
+  #endif
+  struct timespec;
+  int clock_gettime(int clk_id, struct timespec *tp);
 #else
   #include <sys/types.h>
   #include <unistd.h>
@@ -35,6 +51,7 @@ char *platform_dirname(char *path);
 int platform_usleep(unsigned int usec);
 
 #ifdef _WIN32
+char *getpass(const char *prompt);
 ssize_t platform_getline(char **lineptr, size_t *n, FILE *stream);
 #else
 #define platform_getline getline

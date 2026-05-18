@@ -7,7 +7,10 @@
 #include <stdio.h>
 #include <BaseTsd.h>
 
+#ifndef _SSIZE_T_DEFINED
 typedef SSIZE_T ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 
 /* Standard file descriptor numbers (POSIX.1-2008) */
 #ifndef STDIN_FILENO
@@ -38,5 +41,8 @@ typedef SSIZE_T ssize_t;
     setvbuf(stream, NULL, _IOLBF, 0);
   }
 #endif
+
+int pipe(int pipefd[2]);
+int fork(void);
 
 #endif

@@ -12,7 +12,9 @@
 #define WIFSIGNALED(status) 0            /* Always false: not terminated by signal */
 #define WTERMSIG(status) 0               /* Always 0: no terminating signal */
 
+#ifndef __GNUC__
 typedef int pid_t;
+#endif
 
 static inline pid_t waitpid(pid_t pid, int *status, int options) {
   return -1;
