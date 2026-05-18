@@ -1,41 +1,26 @@
 name: build Windows
 
-on:
-  push:
-    branches: [ "windows" ]
-  pull_request:
-    branches: [ "windows" ]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        config: [Release, Debug]
-        include:
-          - config: Release
-            artifact_name: pspg.exe
-          - config: Debug
-            artifact_name: pspg-debug.exe
+
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      # PGROOT: C:\Program Files\PostgreSQL\17
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-
-    - name: Setup CMake
-      uses: lukka/get-cmake@latest
-
     - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+      run: cmake -B build --preset=msvc -DPostgreSQL_ADDITIONAL_VERSIONS=17
 
     - name: Build
-      run: cmake --build build --config ${{ matrix.config }}
+      run: cmake --build build --config RelWithDebInfo
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact_name }}
-        path: build/${{ matrix.config }}/pspg.exe
-        retention-days: 30
+        name: Windows shlibs
+        path: build/RelWithDebInfo/*
