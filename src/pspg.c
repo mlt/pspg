@@ -5334,7 +5334,7 @@ recheck_right:
 						if (cursor_row < 0)
 							cursor_row = 0;
 					}
-						else
+					else
 						make_beep();
 				}
 				break;

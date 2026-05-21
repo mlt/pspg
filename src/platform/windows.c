@@ -201,10 +201,10 @@ poll(struct pollfd_custom *fds, unsigned int nfds, int timeout)
 			else if (timeout < 0)
 				Sleep(100);
 
-		fds[0].revents = POLLIN;
-		return 1;
+			fds[0].revents = POLLIN;
+			return 1;
+		}
 	}
-}
 #endif
 
 	FD_ZERO(&readfds);
