@@ -1163,24 +1163,24 @@ close_data_stream(void)
 bool
 open_tty_stream(void)
 {
-
-#if !defined(__APPLE__) && !defined(_WIN32)
-
-	f_tty = fopen("/dev/tty", "r+");
-
+#ifdef _WIN32
+	/*
+	 * Windows console access via CONIN$ (Console Input device).
+	 * This is the Windows equivalent of /dev/tty for reading.
+	 */
+	#define ttyname(fd) "CONIN$"
+#ifdef _MSC_VER /* cl.exe and ClangCL */
+	/* Otherwise, I get this: Redirection is not supported. */
+	f_tty = freopen(ttyname(fileno(stdin)), "r+", stdin);
+#else /* No problem here with msys2/MinGW */
+	f_tty = fopen(ttyname(fileno(stdin)), "r+");
 #endif
+#elif !defined(__APPLE__)
+	f_tty = fopen("/dev/tty", "r+");
+#endif /* !_WIN32 && !__APPLE__ */
 
 	if (!f_tty)
 	{
-#ifdef _WIN32
-		/*
-		 * Windows console access via CONIN$ (Console Input device).
-		 * This is the Windows equivalent of /dev/tty for reading.
-		 */
-		f_tty = fopen("CONIN$", "r+");
-		if (f_tty)
-			close_f_tty = true;
-#else
 		f_tty = fopen(ttyname(fileno(stdout)), "r");
 		if (!f_tty)
 		{
@@ -1189,7 +1189,6 @@ open_tty_stream(void)
 		}
 		else
 			close_f_tty = true;
-#endif
 	}
 	else
 		close_f_tty = true;
