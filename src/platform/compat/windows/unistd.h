@@ -37,9 +37,7 @@ typedef SSIZE_T ssize_t;
 #define pclose _pclose
 
 #ifndef setlinebuf
-  static inline void setlinebuf(FILE *stream) {
-    setvbuf(stream, NULL, _IOLBF, 0);
-  }
+  #define setlinebuf(stream) setvbuf(stream, NULL, _IOLBF, BUFSIZ)
 #endif
 
 int pipe(int pipefd[2]);
