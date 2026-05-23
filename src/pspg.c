@@ -3036,18 +3036,10 @@ main(int argc, char *argv[])
 	 * ncurses doesn't work well when direct and not direct colors are used
 	 * together.
 	 */
-#ifdef PDCURSES
-	/*
-	 * PDCurses doesn't support newterm() properly, use initscr() instead.
-	 * PDCurses uses a simpler initialization model with the Windows console.
-	 */
-	term = initscr();
-#else
 	if (opts.direct_color)
 		term = newterm("xterm-direct", stdout, f_tty);
 	else
 		term = newterm(termname(), stdout, f_tty);
-#endif
 
 	if (!term)
 		leave("cannot to initialize new terminal");
