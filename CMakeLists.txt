@@ -69,6 +69,12 @@ endif(MSVC)
 # PostgreSQL
 find_package(PostgreSQL REQUIRED)
 
+# Check whether delay loading is used
+string(TOLOWER "$ENV{LDFLAGS}" TOLOWER_LDFLAGS)
+if(TOLOWER_LDFLAGS MATCHES "delayload")
+    set(WANT_DELAYLOAD TRUE)
+endif()
+
 # Source files
 set(PSPG_SOURCES
     src/args.c
@@ -91,6 +97,7 @@ set(PSPG_SOURCES
     src/themes.c
     src/unicode.c
     $<$<PLATFORM_ID:Windows>:src/platform/windows.c>
+    $<$<BOOL:${WANT_DELAYLOAD}>:src/platform/dl_reaper.c>
     src/st_menu.c
     src/st_menu_styles.c
     src/menu.c
@@ -119,6 +126,7 @@ target_link_libraries(pspg PRIVATE
     $<$<PLATFORM_ID:Windows>:ws2_32>
     $<$<AND:$<PLATFORM_ID:Windows>,$<STREQUAL:${WANT_CURSES},pdcurses>>:Winmm>
     $<$<AND:$<PLATFORM_ID:Windows>,$<STREQUAL:${CMAKE_C_COMPILER_FRONTEND_VARIANT},GNU>>:winpthread>
+    $<$<AND:$<PLATFORM_ID:Windows>,$<BOOL:${WANT_DELAYLOAD}>>:delayimp;ntdll>
 )
 
 if(TARGET unofficial::readline-win32::readline)
