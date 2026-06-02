@@ -70,7 +70,13 @@ if curses.found()
     project_deps += cc.find_library('pdcurses', dirs: curses_lib_dir)
   endif
 else # msys2 fallback
-  curses = cc.find_library('pdcurses_wincon')
+    curses = cc.find_library('pdcurses_wincon')
+#   t = declare_dependency(dependencies: [
+#     curses.partial_dependency(compile_args: true, includes: true),
+#     cc.find_library('pdcurses_wincon')
+#   ])
+#   meson.override_dependency('pdcurses_wincon', t)
+#   curses = dependency('pdcurses_wincon')
 endif
 
 curses_name = curses.name()
@@ -97,7 +103,10 @@ if ['ncursesw', 'pdcurses'].contains(curses_name)
   build_args += '-DHAVE_NCURSESW'
 endif
 
-curses_inc = curses.get_variable(pkgconfig: 'includedir', default_value: prefix / 'include') / curses_name
+curses_inc = prefix / 'include' / curses_name
+if curses.type_name() == 'pkgconfig' # won't work with find_library
+  curses_inc = curses.get_variable(pkgconfig: 'includedir')
+endif
 if fs.is_dir(curses_inc)
   message('Adding curses include directory: ' + curses_inc)
   project_includes += include_directories(curses_inc)
