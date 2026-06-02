@@ -1,0 +1,56 @@
+name: Static Windows binary
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      PKG_CONFIG_PATH: C:\msys64\clang64\lib\pkgconfig
+      MSYSTEM: CLANG64
+      MINGW_PREFIX: C:\msys64\clang64
+      LDFLAGS: -Wl,--delayload=libpq.dll
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache downloaded Pacman packages
+      uses: actions/cache@v4
+      with:
+        path: C:\msys64\var\cache\pacman\pkg
+        key: pacman-win-static
+    - name: Add MSYS2 to PATH
+      shell: pwsh
+      run: |
+        echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "C:\msys64\clang64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Install dependencies
+      run: >-
+        pacman --noconfirm -S
+        mingw-w64-clang-x86_64-clang
+        mingw-w64-clang-x86_64-meson
+        mingw-w64-clang-x86_64-ninja
+        mingw-w64-clang-x86_64-pkgconf
+        mingw-w64-clang-x86_64-postgresql
+        mingw-w64-clang-x86_64-pdcurses
+        mingw-w64-clang-x86_64-upx
+    - name: Configure Meson
+      run: meson setup build --backend ninja --buildtype release -Dshlibs=pg -Ddep_prefix=$MINGW_PREFIX
+    - name: Build
+      run: meson compile -C build
+    - name: Test
+      run: build/pspg.exe --info
+    - name: Compress binary with UPX
+      run: upx --best --ultra-brute -o build/pspg_upx.exe build/pspg.exe
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pspg binary
+        path: build/pspg*.exe
+    - name: Upload Meson log
+      uses: actions/upload-artifact@v4
+      if: ${{ failure() }}
+      with:
+        name: Meson log
+        path: build/meson-logs/meson-log.txt
