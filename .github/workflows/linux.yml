@@ -1,6 +1,10 @@
-name: build Linux
+name: Ubuntu Linux
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
 
 jobs:
   build:
@@ -8,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install dependencies
       run: >-
         sudo apt-get install -qq -y -o=Dpkg::Use-Pty=0
@@ -25,7 +29,7 @@ jobs:
     - name: Test
       run: build/pspg --info
     - name: Upload Meson log
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: ${{ failure() }}
       with:
         name: Meson log
