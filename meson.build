@@ -94,7 +94,8 @@ message(curses_name)
 panel = cc.find_library('panel', required: curses_name != 'pdcurses')
 math = cc.find_library('m', required: not is_windows)
 
-if cc.has_function('kqueue', prefix : '#include	<sys/event.h>')
+have_kqueue = cc.has_function('kqueue', prefix : '#include <sys/event.h>')
+if have_kqueue
   build_args += '-DHAVE_KQUEUE'
 endif
 
@@ -131,9 +132,12 @@ check_headers = [
   ['curses.h', '-DHAVE_CURSES_H'],
   ['panel.h', '-DHAVE_PANEL_H'],
   ['readline.h', ['-DHAVE_LIBREADLINE', '-DHAVE_READLINE_H']],
-  ['history.h', ['-DHAVE_READLINE_HISTORY', '-DHAVE_HISTORY_H']],
-  ['sys/inotify.h', '-DHAVE_INOTIFY']
+  ['history.h', ['-DHAVE_READLINE_HISTORY', '-DHAVE_HISTORY_H']]
 ]
+
+if not have_kqueue # FreeBSD has both, prefer kqueue
+  check_headers += [['sys/inotify.h', '-DHAVE_INOTIFY']]
+endif
 
 foreach h : check_headers
   if cc.has_header(h.get(0), include_directories: project_includes)
